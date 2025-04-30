@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-// Initial state
+// Initial state for rewards
 const initialState = {
   rewards: {},
   redemptions: {},
@@ -8,91 +8,120 @@ const initialState = {
   error: null,
 };
 
-// Async thunks for API calls - to be implemented with backend
+// Sample rewards for demo purposes
+const sampleRewards = {
+  'reward1': {
+    id: 'reward1',
+    title: 'Movie Night',
+    description: 'Choose a movie for the family to watch together',
+    pointCost: 25,
+    image: '🎬',
+    isCashReward: false,
+    isAvailable: true,
+    createdBy: 'parent123',
+    createdAt: Date.now() - 2592000000, // 30 days ago
+    updatedAt: Date.now() - 2592000000,
+  },
+  'reward2': {
+    id: 'reward2',
+    title: '30 Minutes Extra Screen Time',
+    description: 'Get an extra 30 minutes of screen time',
+    pointCost: 15,
+    image: '📱',
+    isCashReward: false,
+    isAvailable: true,
+    createdBy: 'parent123',
+    createdAt: Date.now() - 1728000000, // 20 days ago
+    updatedAt: Date.now() - 1728000000,
+  },
+  'reward3': {
+    id: 'reward3',
+    title: 'Pizza Night',
+    description: 'You get to choose the pizza toppings for dinner',
+    pointCost: 30,
+    image: '🍕',
+    isCashReward: false,
+    isAvailable: true,
+    createdBy: 'parent123',
+    createdAt: Date.now() - 864000000, // 10 days ago
+    updatedAt: Date.now() - 864000000,
+  },
+  'reward4': {
+    id: 'reward4',
+    title: '$5 Allowance',
+    description: 'Get $5 added to your allowance',
+    pointCost: 50,
+    image: '💵',
+    isCashReward: true,
+    cashValue: 500, // $5.00 in cents
+    isAvailable: true,
+    createdBy: 'parent123',
+    createdAt: Date.now() - 432000000, // 5 days ago
+    updatedAt: Date.now() - 432000000,
+  },
+  'reward5': {
+    id: 'reward5',
+    title: 'Stay Up Late',
+    description: 'Stay up 1 hour past bedtime',
+    pointCost: 20,
+    image: '🌙',
+    isCashReward: false,
+    isAvailable: true,
+    createdBy: 'parent123',
+    createdAt: Date.now() - 172800000, // 2 days ago
+    updatedAt: Date.now() - 172800000,
+  },
+};
+
+// Sample redemptions
+const sampleRedemptions = {
+  'redemption1': {
+    id: 'redemption1',
+    rewardId: 'reward2',
+    childId: 'child123',
+    pointsSpent: 15,
+    status: 'approved',
+    redeemedAt: Date.now() - 259200000, // 3 days ago
+    processedAt: Date.now() - 172800000, // 2 days ago
+  },
+  'redemption2': {
+    id: 'redemption2',
+    rewardId: 'reward4',
+    childId: 'child123',
+    pointsSpent: 50,
+    cashValue: 500, // $5.00 in cents
+    status: 'pending',
+    redeemedAt: Date.now() - 43200000, // 12 hours ago
+  },
+};
+
+// Rewards thunks
 export const fetchRewards = createAsyncThunk(
   'rewards/fetchRewards',
-  async (parentId, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // For now, just return mock data
-      return {
-        '1': {
-          id: '1',
-          title: 'Ice cream',
-          description: 'A delicious treat!',
-          pointCost: 30,
-          isCashReward: false,
-          isAvailable: true,
-          createdBy: 'parent1',
-          createdAt: Date.now() - 2592000000, // 30 days ago
-          updatedAt: Date.now() - 2592000000,
-        },
-        '2': {
-          id: '2',
-          title: 'Movie night',
-          description: 'Pick any movie to watch',
-          pointCost: 50,
-          isCashReward: false,
-          isAvailable: true,
-          createdBy: 'parent1',
-          createdAt: Date.now() - 2592000000,
-          updatedAt: Date.now() - 2592000000,
-        },
-        '3': {
-          id: '3',
-          title: 'Video game time (1 hour)',
-          description: 'Extra gaming time',
-          pointCost: 40,
-          isCashReward: false,
-          isAvailable: true,
-          createdBy: 'parent1',
-          createdAt: Date.now() - 2592000000,
-          updatedAt: Date.now() - 2592000000,
-        },
-        '4': {
-          id: '4',
-          title: '$5 Cash',
-          description: 'Cash reward',
-          pointCost: 100,
-          isCashReward: true,
-          cashValue: 500, // in cents
-          isAvailable: true,
-          createdBy: 'parent1',
-          createdAt: Date.now() - 2592000000,
-          updatedAt: Date.now() - 2592000000,
-        },
-      };
+      // In a real app, fetch from Firebase
+      // For now, use sample data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return sampleRewards;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch rewards');
     }
   }
 );
 
 export const fetchRedemptions = createAsyncThunk(
   'rewards/fetchRedemptions',
-  async (childId, { rejectWithValue }) => {
+  async ({ childId, parentId }, { rejectWithValue }) => {
     try {
-      // For now, just return mock data
-      return {
-        '1': {
-          id: '1',
-          rewardId: '1',
-          childId: '1',
-          pointsSpent: 30,
-          status: 'approved',
-          redeemedAt: Date.now() - 604800000, // 1 week ago
-          processedAt: Date.now() - 604000000,
-        },
-        '2': {
-          id: '2',
-          rewardId: '3',
-          childId: '2',
-          pointsSpent: 40,
-          status: 'pending',
-          redeemedAt: Date.now() - 86400000, // 1 day ago
-        },
-      };
+      // In a real app, fetch from Firebase based on childId or parentId
+      // For now, use sample data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return sampleRedemptions;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch redemptions');
     }
   }
 );
@@ -101,65 +130,52 @@ export const addReward = createAsyncThunk(
   'rewards/addReward',
   async (rewardData, { rejectWithValue }) => {
     try {
-      // Simulate API call
+      // In a real app, add to Firebase
+      // For now, just simulate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const newReward = {
         ...rewardData,
-        id: Math.random().toString(36).substr(2, 9),
-        isAvailable: true,
+        id: 'reward_' + Math.random().toString(36).substr(2, 9),
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
       
       return newReward;
     } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const updateReward = createAsyncThunk(
-  'rewards/updateReward',
-  async ({ rewardId, updates }, { rejectWithValue }) => {
-    try {
-      // Simulate API call
-      return {
-        id: rewardId,
-        ...updates,
-        updatedAt: Date.now(),
-      };
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const deleteReward = createAsyncThunk(
-  'rewards/deleteReward',
-  async (rewardId, { rejectWithValue }) => {
-    try {
-      // Simulate API call
-      return rewardId;
-    } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to add reward');
     }
   }
 );
 
 export const redeemReward = createAsyncThunk(
   'rewards/redeemReward',
-  async ({ childId, rewardId }, { getState, rejectWithValue }) => {
+  async ({ rewardId, childId }, { rejectWithValue, getState }) => {
     try {
-      // Get the reward and child details
-      const state = getState();
-      const reward = state.rewards.rewards[rewardId];
+      const { rewards } = getState().rewards;
+      const { children } = getState().children;
       
-      if (!reward) {
+      if (!rewards[rewardId]) {
         return rejectWithValue('Reward not found');
       }
       
-      // Create a new redemption
+      if (!children[childId]) {
+        return rejectWithValue('Child not found');
+      }
+      
+      const reward = rewards[rewardId];
+      const child = children[childId];
+      
+      if (child.points < reward.pointCost) {
+        return rejectWithValue('Not enough points to redeem this reward');
+      }
+      
+      // In a real app, add redemption to Firebase and update child points
+      // For now, just simulate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const redemption = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: 'redemption_' + Math.random().toString(36).substr(2, 9),
         rewardId,
         childId,
         pointsSpent: reward.pointCost,
@@ -170,23 +186,34 @@ export const redeemReward = createAsyncThunk(
       
       return redemption;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to redeem reward');
     }
   }
 );
 
 export const processRedemption = createAsyncThunk(
   'rewards/processRedemption',
-  async ({ redemptionId, approved }, { rejectWithValue }) => {
+  async ({ redemptionId, approved }, { rejectWithValue, getState }) => {
     try {
-      // Simulate API call
-      return {
-        id: redemptionId,
+      const { redemptions } = getState().rewards;
+      
+      if (!redemptions[redemptionId]) {
+        return rejectWithValue('Redemption not found');
+      }
+      
+      // In a real app, update redemption in Firebase
+      // For now, just simulate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const updatedRedemption = {
+        ...redemptions[redemptionId],
         status: approved ? 'approved' : 'denied',
         processedAt: Date.now(),
       };
+      
+      return updatedRedemption;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to process redemption');
     }
   }
 );
@@ -196,120 +223,80 @@ const rewardsSlice = createSlice({
   name: 'rewards',
   initialState,
   reducers: {
-    resetRewardsState: (state) => {
-      state.rewards = {};
-      state.redemptions = {};
-      state.loading = false;
+    resetRewardsError: (state) => {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch rewards
+      // Fetch Rewards
       .addCase(fetchRewards.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchRewards.fulfilled, (state, action) => {
-        state.rewards = action.payload;
         state.loading = false;
+        state.rewards = action.payload;
       })
       .addCase(fetchRewards.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to fetch rewards';
       })
-      
-      // Fetch redemptions
+      // Fetch Redemptions
       .addCase(fetchRedemptions.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchRedemptions.fulfilled, (state, action) => {
-        state.redemptions = action.payload;
         state.loading = false;
+        state.redemptions = action.payload;
       })
       .addCase(fetchRedemptions.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to fetch redemptions';
       })
-      
-      // Add reward
+      // Add Reward
       .addCase(addReward.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addReward.fulfilled, (state, action) => {
-        state.rewards[action.payload.id] = action.payload;
         state.loading = false;
+        state.rewards[action.payload.id] = action.payload;
       })
       .addCase(addReward.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to add reward';
       })
-      
-      // Update reward
-      .addCase(updateReward.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateReward.fulfilled, (state, action) => {
-        const { id, ...updates } = action.payload;
-        if (state.rewards[id]) {
-          state.rewards[id] = { ...state.rewards[id], ...updates };
-        }
-        state.loading = false;
-      })
-      .addCase(updateReward.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Delete reward
-      .addCase(deleteReward.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteReward.fulfilled, (state, action) => {
-        delete state.rewards[action.payload];
-        state.loading = false;
-      })
-      .addCase(deleteReward.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Redeem reward
+      // Redeem Reward
       .addCase(redeemReward.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(redeemReward.fulfilled, (state, action) => {
-        state.redemptions[action.payload.id] = action.payload;
         state.loading = false;
+        state.redemptions[action.payload.id] = action.payload;
       })
       .addCase(redeemReward.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to redeem reward';
       })
-      
-      // Process redemption
+      // Process Redemption
       .addCase(processRedemption.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(processRedemption.fulfilled, (state, action) => {
-        const { id, ...updates } = action.payload;
-        if (state.redemptions[id]) {
-          state.redemptions[id] = { ...state.redemptions[id], ...updates };
-        }
         state.loading = false;
+        state.redemptions[action.payload.id] = action.payload;
       })
       .addCase(processRedemption.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to process redemption';
       });
   },
 });
 
-export const { resetRewardsState } = rewardsSlice.actions;
+export const { resetRewardsError } = rewardsSlice.actions;
+
 export default rewardsSlice.reducer;

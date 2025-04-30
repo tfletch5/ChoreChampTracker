@@ -1,115 +1,119 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import {
+  createChore,
+  getChoresByChild,
+  getChoresByParent,
+  updateChore
+} from '../../services/firestore';
 
-// Initial state
+// Initial state for chores
 const initialState = {
   chores: {},
   loading: false,
   error: null,
 };
 
-// Async thunks for API calls - to be implemented with backend
+// Sample chores for demo purposes
+const sampleChores = {
+  'chore1': {
+    id: 'chore1',
+    title: 'Clean bedroom',
+    description: 'Make bed, pick up toys, and vacuum floor',
+    pointValue: 10,
+    dueDate: Date.now() + 86400000, // 1 day from now
+    isRecurring: false,
+    assignedTo: 'child123',
+    status: 'pending',
+    createdBy: 'parent123',
+    createdAt: Date.now() - 86400000, // 1 day ago
+    updatedAt: Date.now() - 86400000, // 1 day ago
+    reminders: []
+  },
+  'chore2': {
+    id: 'chore2',
+    title: 'Do the dishes',
+    description: 'Wash all dishes after dinner',
+    pointValue: 5,
+    dueDate: Date.now() + 43200000, // 12 hours from now
+    isRecurring: true,
+    recurringPattern: {
+      frequency: 'daily',
+      interval: 1,
+    },
+    assignedTo: 'child123',
+    status: 'pending',
+    createdBy: 'parent123',
+    createdAt: Date.now() - 172800000, // 2 days ago
+    updatedAt: Date.now() - 172800000, // 2 days ago
+    reminders: []
+  },
+  'chore3': {
+    id: 'chore3',
+    title: 'Take out trash',
+    description: 'Empty all trash cans and take to curb',
+    pointValue: 3,
+    dueDate: Date.now() + 21600000, // 6 hours from now
+    isRecurring: true,
+    recurringPattern: {
+      frequency: 'weekly',
+      interval: 1,
+      daysOfWeek: [1, 4] // Monday and Thursday
+    },
+    assignedTo: 'child123',
+    status: 'pending',
+    createdBy: 'parent123',
+    createdAt: Date.now() - 259200000, // 3 days ago
+    updatedAt: Date.now() - 259200000, // 3 days ago
+    reminders: []
+  },
+  'chore4': {
+    id: 'chore4',
+    title: 'Fold laundry',
+    description: 'Fold clean clothes and put away in drawers',
+    pointValue: 8,
+    dueDate: Date.now() - 43200000, // 12 hours ago (overdue)
+    isRecurring: false,
+    assignedTo: 'child123',
+    status: 'overdue',
+    createdBy: 'parent123', 
+    createdAt: Date.now() - 345600000, // 4 days ago
+    updatedAt: Date.now() - 345600000, // 4 days ago
+    reminders: []
+  },
+  'chore5': {
+    id: 'chore5',
+    title: 'Mow the lawn',
+    description: 'Mow front and back yard',
+    pointValue: 15,
+    dueDate: Date.now() + 172800000, // 2 days from now
+    isRecurring: true,
+    recurringPattern: {
+      frequency: 'weekly',
+      interval: 2, // every 2 weeks
+      daysOfWeek: [6] // Saturday
+    },
+    assignedTo: 'child123',
+    status: 'pending',
+    createdBy: 'parent123',
+    createdAt: Date.now() - 432000000, // 5 days ago
+    updatedAt: Date.now() - 432000000, // 5 days ago
+    reminders: []
+  },
+};
+
+// Chores thunks
 export const fetchChores = createAsyncThunk(
   'chores/fetchChores',
-  async ({ parentId, childId }, { rejectWithValue }) => {
+  async ({ userId, isParent }, { rejectWithValue }) => {
     try {
-      // For now, just return mock data
-      // In a real app, this would fetch from Firestore or another backend
-      const now = Date.now();
-      const dayInMs = 24 * 60 * 60 * 1000;
+      // In a real app, fetch from Firebase
+      // For now, use sample data
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const mockChores = {
-        '1': {
-          id: '1',
-          title: 'Clean bedroom',
-          description: 'Make bed, put toys away, and vacuum floor',
-          pointValue: 20,
-          dueDate: now + (2 * dayInMs), // 2 days from now
-          isRecurring: true,
-          recurringPattern: {
-            frequency: 'weekly',
-            interval: 1,
-            daysOfWeek: [1, 5], // Monday and Friday
-          },
-          assignedTo: '1', // childId
-          status: 'pending',
-          createdBy: 'parent1',
-          createdAt: now - (10 * dayInMs),
-          updatedAt: now - (10 * dayInMs),
-          reminders: [
-            {
-              id: '1-1',
-              time: now + dayInMs, // 1 day before due
-              sent: false,
-            },
-          ],
-        },
-        '2': {
-          id: '2',
-          title: 'Feed the dog',
-          description: 'Fill food and water bowls',
-          pointValue: 10,
-          dueDate: now + dayInMs, // 1 day from now
-          isRecurring: true,
-          recurringPattern: {
-            frequency: 'daily',
-            interval: 1,
-          },
-          assignedTo: '2', // childId
-          status: 'pending',
-          createdBy: 'parent1',
-          createdAt: now - (15 * dayInMs),
-          updatedAt: now - (15 * dayInMs),
-          reminders: [],
-        },
-        '3': {
-          id: '3',
-          title: 'Take out trash',
-          description: 'Empty all trash cans and take to outdoor bin',
-          pointValue: 15,
-          dueDate: now - dayInMs, // 1 day ago (overdue)
-          isRecurring: false,
-          assignedTo: '1', // childId
-          status: 'overdue',
-          createdBy: 'parent1',
-          createdAt: now - (5 * dayInMs),
-          updatedAt: now - (5 * dayInMs),
-          reminders: [],
-        },
-        '4': {
-          id: '4',
-          title: 'Set dinner table',
-          description: 'Place plates, utensils, and napkins',
-          pointValue: 5,
-          dueDate: now - (3 * dayInMs), // 3 days ago
-          isRecurring: true,
-          recurringPattern: {
-            frequency: 'daily',
-            interval: 1,
-          },
-          assignedTo: '2', // childId
-          completedAt: now - (3 * dayInMs) + (2 * 60 * 60 * 1000), // Completed 2 hours after due time
-          status: 'completed',
-          createdBy: 'parent1',
-          createdAt: now - (20 * dayInMs),
-          updatedAt: now - (3 * dayInMs) + (2 * 60 * 60 * 1000),
-          reminders: [],
-        },
-      };
-      
-      // If a childId is provided, filter chores for that child
-      if (childId) {
-        const filteredChores = {};
-        Object.keys(mockChores).forEach(key => {
-          if (mockChores[key].assignedTo === childId) {
-            filteredChores[key] = mockChores[key];
-          }
-        });
-        return filteredChores;
-      }
-      
-      return mockChores;
+      // Return sample chores
+      return sampleChores;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch chores');
     }
   }
 );
@@ -118,74 +122,52 @@ export const addChore = createAsyncThunk(
   'chores/addChore',
   async (choreData, { rejectWithValue }) => {
     try {
-      // Simulate API call
-      const newChore = {
-        ...choreData,
-        id: Math.random().toString(36).substr(2, 9),
-        status: 'pending',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      
+      const newChore = await createChore(choreData);
       return newChore;
     } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const updateChore = createAsyncThunk(
-  'chores/updateChore',
-  async ({ choreId, updates }, { rejectWithValue }) => {
-    try {
-      // Simulate API call
-      return {
-        id: choreId,
-        ...updates,
-        updatedAt: Date.now(),
-      };
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const deleteChore = createAsyncThunk(
-  'chores/deleteChore',
-  async (choreId, { rejectWithValue }) => {
-    try {
-      // Simulate API call
-      return choreId;
-    } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to add chore');
     }
   }
 );
 
 export const completeChore = createAsyncThunk(
   'chores/completeChore',
-  async (choreId, { getState, rejectWithValue }) => {
+  async (choreId, { rejectWithValue, getState }) => {
     try {
-      // Simulate API call
-      const state = getState();
-      const chore = state.chores.chores[choreId];
-      
-      if (!chore) {
+      const { chores } = getState().chores;
+      if (!chores[choreId]) {
         return rejectWithValue('Chore not found');
       }
       
-      // Check if the chore is recurring
-      let newStatus = 'completed';
-      let completedAt = Date.now();
+      const updatedChore = await updateChore(choreId, {
+        status: 'completed',
+        completedAt: Date.now(),
+      });
       
-      return {
-        id: choreId,
-        status: newStatus,
-        completedAt,
-        updatedAt: Date.now(),
-      };
+      return updatedChore;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to complete chore');
+    }
+  }
+);
+
+export const updateChoreDetails = createAsyncThunk(
+  'chores/updateChoreDetails',
+  async ({ choreId, updates }, { rejectWithValue, getState }) => {
+    try {
+      const { chores } = getState().chores;
+      if (!chores[choreId]) {
+        return rejectWithValue('Chore not found');
+      }
+      
+      const updatedChore = await updateChore(choreId, {
+        ...updates,
+        updatedAt: Date.now(),
+      });
+      
+      return updatedChore;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to update chore');
     }
   }
 );
@@ -195,91 +177,67 @@ const choresSlice = createSlice({
   name: 'chores',
   initialState,
   reducers: {
-    resetChoresState: (state) => {
-      state.chores = {};
-      state.loading = false;
+    resetChoresError: (state) => {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch chores
+      // Fetch Chores
       .addCase(fetchChores.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchChores.fulfilled, (state, action) => {
-        state.chores = action.payload;
         state.loading = false;
+        state.chores = action.payload;
       })
       .addCase(fetchChores.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to fetch chores';
       })
-      
-      // Add chore
+      // Add Chore
       .addCase(addChore.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addChore.fulfilled, (state, action) => {
-        state.chores[action.payload.id] = action.payload;
         state.loading = false;
+        state.chores[action.payload.id] = action.payload;
       })
       .addCase(addChore.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to add chore';
       })
-      
-      // Update chore
-      .addCase(updateChore.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateChore.fulfilled, (state, action) => {
-        const { id, ...updates } = action.payload;
-        if (state.chores[id]) {
-          state.chores[id] = { ...state.chores[id], ...updates };
-        }
-        state.loading = false;
-      })
-      .addCase(updateChore.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Delete chore
-      .addCase(deleteChore.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteChore.fulfilled, (state, action) => {
-        delete state.chores[action.payload];
-        state.loading = false;
-      })
-      .addCase(deleteChore.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Complete chore
+      // Complete Chore
       .addCase(completeChore.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(completeChore.fulfilled, (state, action) => {
-        const { id, ...updates } = action.payload;
-        if (state.chores[id]) {
-          state.chores[id] = { ...state.chores[id], ...updates };
-        }
         state.loading = false;
+        state.chores[action.payload.id] = action.payload;
       })
       .addCase(completeChore.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to complete chore';
+      })
+      // Update Chore
+      .addCase(updateChoreDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateChoreDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.chores[action.payload.id] = action.payload;
+      })
+      .addCase(updateChoreDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update chore';
       });
   },
 });
 
-export const { resetChoresState } = choresSlice.actions;
+export const { resetChoresError } = choresSlice.actions;
+
 export default choresSlice.reducer;

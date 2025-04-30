@@ -1,6 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import {
+  createChildProfile,
+  getChildrenByParent,
+  updateUserProfile,
+} from '../../services/firestore';
 
-// Initial state
+// Initial state for children
 const initialState = {
   children: {},
   selectedChildId: null,
@@ -8,38 +13,44 @@ const initialState = {
   error: null,
 };
 
-// Async thunks for API calls - to be implemented with backend
+// Sample children for demo purposes
+const sampleChildren = {
+  'child123': {
+    id: 'child123',
+    name: 'Alex Johnson',
+    age: 10,
+    avatarURL: null,
+    avatar: '👦',
+    parentId: 'parent123',
+    points: 75,
+    streakCount: 3,
+    createdAt: Date.now() - 7776000000, // 90 days ago
+  },
+  'child456': {
+    id: 'child456',
+    name: 'Emma Johnson',
+    age: 8,
+    avatarURL: null,
+    avatar: '👧',
+    parentId: 'parent123',
+    points: 50,
+    streakCount: 2,
+    createdAt: Date.now() - 6912000000, // 80 days ago
+  }
+};
+
+// Children thunks
 export const fetchChildren = createAsyncThunk(
   'children/fetchChildren',
   async (parentId, { rejectWithValue }) => {
     try {
-      // For now, just return mock data
-      return {
-        '1': {
-          id: '1',
-          name: 'Alex',
-          age: 9,
-          avatarURL: '',
-          avatar: '👦',
-          parentId: 'parent1',
-          points: 150,
-          streakCount: 3,
-          createdAt: Date.now() - 2592000000, // 30 days ago
-        },
-        '2': {
-          id: '2',
-          name: 'Sophia',
-          age: 7,
-          avatarURL: '',
-          avatar: '👧',
-          parentId: 'parent1',
-          points: 120,
-          streakCount: 2,
-          createdAt: Date.now() - 2592000000, // 30 days ago
-        },
-      };
+      // In a real app, fetch from Firebase
+      // For now, use sample data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return sampleChildren;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch children');
     }
   }
 );
@@ -48,60 +59,97 @@ export const addChild = createAsyncThunk(
   'children/addChild',
   async (childData, { rejectWithValue }) => {
     try {
-      // Simulate API call
-      const newChild = {
+      const newChild = await createChildProfile({
         ...childData,
-        id: Math.random().toString(36).substr(2, 9),
-        createdAt: Date.now(),
         points: 0,
         streakCount: 0,
-      };
+        createdAt: Date.now(),
+      });
       
       return newChild;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to add child');
     }
   }
 );
 
-export const updateChild = createAsyncThunk(
-  'children/updateChild',
-  async ({ childId, updates }, { rejectWithValue }) => {
+export const updateChildProfile = createAsyncThunk(
+  'children/updateChildProfile',
+  async ({ childId, updates }, { rejectWithValue, getState }) => {
     try {
-      // Simulate API call
-      return {
-        id: childId,
+      const { children } = getState().children;
+      if (!children[childId]) {
+        return rejectWithValue('Child not found');
+      }
+      
+      // In a real app, this would update Firestore
+      // For now, just simulate the update
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const updatedChild = {
+        ...children[childId],
         ...updates,
       };
+      
+      return updatedChild;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to update child profile');
     }
   }
 );
 
-export const deleteChild = createAsyncThunk(
-  'children/deleteChild',
-  async (childId, { rejectWithValue }) => {
+export const incrementPoints = createAsyncThunk(
+  'children/incrementPoints',
+  async ({ childId, points }, { rejectWithValue, getState }) => {
     try {
-      // Simulate API call
-      return childId;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const addPointsToChild = createAsyncThunk(
-  'children/addPointsToChild',
-  async ({ childId, points }, { rejectWithValue }) => {
-    try {
-      // Simulate API call
-      return {
-        childId,
-        points,
+      const { children } = getState().children;
+      if (!children[childId]) {
+        return rejectWithValue('Child not found');
+      }
+      
+      const currentPoints = children[childId].points || 0;
+      const updatedPoints = currentPoints + points;
+      
+      // In a real app, this would update Firestore
+      // For now, just simulate the update
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const updatedChild = {
+        ...children[childId],
+        points: updatedPoints,
       };
+      
+      return updatedChild;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to increment points');
+    }
+  }
+);
+
+export const updateStreak = createAsyncThunk(
+  'children/updateStreak',
+  async ({ childId, increment = true }, { rejectWithValue, getState }) => {
+    try {
+      const { children } = getState().children;
+      if (!children[childId]) {
+        return rejectWithValue('Child not found');
+      }
+      
+      const currentStreak = children[childId].streakCount || 0;
+      const updatedStreak = increment ? currentStreak + 1 : 0;
+      
+      // In a real app, this would update Firestore
+      // For now, just simulate the update
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const updatedChild = {
+        ...children[childId],
+        streakCount: updatedStreak,
+      };
+      
+      return updatedChild;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to update streak');
     }
   }
 );
@@ -111,98 +159,73 @@ const childrenSlice = createSlice({
   name: 'children',
   initialState,
   reducers: {
-    setSelectedChild: (state, action) => {
+    selectChild: (state, action) => {
       state.selectedChildId = action.payload;
     },
-    resetChildrenState: (state) => {
-      state.children = {};
-      state.selectedChildId = null;
-      state.loading = false;
+    resetChildrenError: (state) => {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch children
+      // Fetch Children
       .addCase(fetchChildren.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchChildren.fulfilled, (state, action) => {
-        state.children = action.payload;
         state.loading = false;
+        state.children = action.payload;
+        // Auto-select the first child if none is selected
+        if (!state.selectedChildId && Object.keys(action.payload).length > 0) {
+          state.selectedChildId = Object.keys(action.payload)[0];
+        }
       })
       .addCase(fetchChildren.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to fetch children';
       })
-      
-      // Add child
+      // Add Child
       .addCase(addChild.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addChild.fulfilled, (state, action) => {
-        state.children[action.payload.id] = action.payload;
         state.loading = false;
+        state.children[action.payload.id] = action.payload;
+        // Auto-select the new child if none is selected
+        if (!state.selectedChildId) {
+          state.selectedChildId = action.payload.id;
+        }
       })
       .addCase(addChild.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to add child';
       })
-      
-      // Update child
-      .addCase(updateChild.pending, (state) => {
+      // Update Child Profile
+      .addCase(updateChildProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateChild.fulfilled, (state, action) => {
-        const { id, ...updates } = action.payload;
-        if (state.children[id]) {
-          state.children[id] = { ...state.children[id], ...updates };
-        }
+      .addCase(updateChildProfile.fulfilled, (state, action) => {
         state.loading = false;
+        state.children[action.payload.id] = action.payload;
       })
-      .addCase(updateChild.rejected, (state, action) => {
+      .addCase(updateChildProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to update child profile';
       })
-      
-      // Delete child
-      .addCase(deleteChild.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      // Increment Points
+      .addCase(incrementPoints.fulfilled, (state, action) => {
+        state.children[action.payload.id] = action.payload;
       })
-      .addCase(deleteChild.fulfilled, (state, action) => {
-        delete state.children[action.payload];
-        if (state.selectedChildId === action.payload) {
-          state.selectedChildId = null;
-        }
-        state.loading = false;
-      })
-      .addCase(deleteChild.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Add points to child
-      .addCase(addPointsToChild.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(addPointsToChild.fulfilled, (state, action) => {
-        const { childId, points } = action.payload;
-        if (state.children[childId]) {
-          state.children[childId].points += points;
-        }
-        state.loading = false;
-      })
-      .addCase(addPointsToChild.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+      // Update Streak
+      .addCase(updateStreak.fulfilled, (state, action) => {
+        state.children[action.payload.id] = action.payload;
       });
   },
 });
 
-export const { setSelectedChild, resetChildrenState } = childrenSlice.actions;
+export const { selectChild, resetChildrenError } = childrenSlice.actions;
+
 export default childrenSlice.reducer;

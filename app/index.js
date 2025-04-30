@@ -5,28 +5,32 @@ import { useSelector } from 'react-redux';
 
 export default function Index() {
   const router = useRouter();
-  const { user, loading } = useSelector((state) => state.auth);
+  const { user, loading } = useSelector(state => state.auth);
 
+  // Check if user is authenticated and redirect accordingly
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        router.replace('/tabs');
+      } else {
+        router.replace('/auth/login');
+      }
+    }
+  }, [user, loading]);
+
+  // Show loading screen while checking authentication status
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4E67F0" />
+        <Text style={styles.appName}>ChoreChamp</Text>
+        <ActivityIndicator size="large" color="#4E67F0" style={styles.loader} />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
 
-  // Route based on authentication status
-  if (!user) {
-    return <Redirect href="/auth/login" />;
-  }
-
-  // Route to appropriate dashboard based on user role
-  if (user.isParent) {
-    return <Redirect href="/tabs" />;
-  } else {
-    return <Redirect href="/tabs" />;
-  }
+  // Return redirect (this will happen immediately after the initial render)
+  return user ? <Redirect href="/tabs" /> : <Redirect href="/auth/login" />;
 }
 
 const styles = StyleSheet.create({
@@ -35,9 +39,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5F7FA',
+    padding: 20,
+  },
+  appName: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#4E67F0',
+    marginBottom: 20,
+  },
+  loader: {
+    marginVertical: 20,
   },
   loadingText: {
-    marginTop: 16,
     fontSize: 16,
     color: '#666',
   },

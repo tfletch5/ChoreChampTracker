@@ -1,83 +1,99 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-// Initial state
+// Initial state for wallet
 const initialState = {
-  balance: 0, // Current wallet balance in cents
+  balance: 0,
   transactions: {},
-  pointToMoneyRatio: 10, // 10 cents per point by default
+  pointToMoneyRatio: 1, // 1 point = 1 cent by default
   loading: false,
   error: null,
 };
 
-// Async thunks for API calls - to be implemented with backend
-export const fetchWalletBalance = createAsyncThunk(
-  'wallet/fetchWalletBalance',
-  async (userId, { rejectWithValue }) => {
-    try {
-      // For now, just return mock data
-      return 2000; // $20.00
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+// Sample transactions for demo purposes
+const sampleTransactions = {
+  'transaction1': {
+    id: 'transaction1',
+    type: 'deposit',
+    amount: 2000, // $20.00 in cents
+    description: 'Initial wallet deposit',
+    parentId: 'parent123',
+    status: 'completed',
+    createdAt: Date.now() - 2592000000, // 30 days ago
+    updatedAt: Date.now() - 2592000000,
+  },
+  'transaction2': {
+    id: 'transaction2',
+    type: 'reward',
+    amount: 500, // $5.00 in cents
+    description: 'Reward redemption - $5 Allowance',
+    childId: 'child123',
+    parentId: 'parent123',
+    status: 'completed',
+    createdAt: Date.now() - 345600000, // 4 days ago
+    updatedAt: Date.now() - 345600000,
+  },
+  'transaction3': {
+    id: 'transaction3',
+    type: 'withdrawal',
+    amount: -1000, // $10.00 in cents
+    description: 'Cash withdrawal',
+    childId: 'child123',
+    parentId: 'parent123',
+    status: 'completed',
+    createdAt: Date.now() - 172800000, // 2 days ago
+    updatedAt: Date.now() - 172800000,
+  },
+  'transaction4': {
+    id: 'transaction4',
+    type: 'deposit',
+    amount: 1500, // $15.00 in cents
+    description: 'Weekly allowance',
+    childId: 'child123',
+    parentId: 'parent123',
+    status: 'completed',
+    createdAt: Date.now() - 86400000, // 1 day ago
+    updatedAt: Date.now() - 86400000,
+  },
+  'transaction5': {
+    id: 'transaction5',
+    type: 'reward',
+    amount: 500, // $5.00 in cents
+    description: 'Reward redemption - $5 Allowance',
+    childId: 'child123',
+    parentId: 'parent123',
+    status: 'pending',
+    createdAt: Date.now() - 43200000, // 12 hours ago
+    updatedAt: Date.now() - 43200000,
+  },
+};
 
-export const fetchTransactions = createAsyncThunk(
-  'wallet/fetchTransactions',
+// Wallet thunks
+export const fetchWalletData = createAsyncThunk(
+  'wallet/fetchWalletData',
   async (userId, { rejectWithValue }) => {
     try {
-      // For now, just return mock data
-      const now = Date.now();
-      const dayInMs = 24 * 60 * 60 * 1000;
+      // In a real app, fetch from Firebase
+      // For now, use sample data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Calculate total balance from completed transactions
+      const transactions = sampleTransactions;
+      const completedTransactions = Object.values(transactions).filter(
+        t => t.status === 'completed' && (t.childId === userId || t.parentId === userId)
+      );
+      
+      const balance = completedTransactions.reduce(
+        (total, t) => total + t.amount, 
+        0
+      );
       
       return {
-        '1': {
-          id: '1',
-          type: 'deposit',
-          amount: 1000, // $10.00
-          description: 'Weekly allowance',
-          parentId: 'parent1',
-          childId: '1',
-          status: 'completed',
-          createdAt: now - (7 * dayInMs),
-          updatedAt: now - (7 * dayInMs),
-        },
-        '2': {
-          id: '2',
-          type: 'reward',
-          amount: 500, // $5.00
-          description: 'Reward redemption',
-          parentId: 'parent1',
-          childId: '1',
-          status: 'completed',
-          createdAt: now - (3 * dayInMs),
-          updatedAt: now - (3 * dayInMs),
-        },
-        '3': {
-          id: '3',
-          type: 'deposit',
-          amount: 1000, // $10.00
-          description: 'Weekly allowance',
-          parentId: 'parent1',
-          childId: '2',
-          status: 'completed',
-          createdAt: now - (7 * dayInMs),
-          updatedAt: now - (7 * dayInMs),
-        },
-        '4': {
-          id: '4',
-          type: 'withdrawal',
-          amount: 500, // $5.00
-          description: 'Cash withdrawal',
-          parentId: 'parent1',
-          childId: '2',
-          status: 'pending',
-          createdAt: now - dayInMs,
-          updatedAt: now - dayInMs,
-        },
+        balance,
+        transactions,
+        pointToMoneyRatio: 1, // 1 point = 1 cent
       };
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to fetch wallet data');
     }
   }
 );
@@ -86,47 +102,47 @@ export const addTransaction = createAsyncThunk(
   'wallet/addTransaction',
   async (transactionData, { rejectWithValue }) => {
     try {
-      // Simulate API call
+      // In a real app, add to Firebase
+      // For now, just simulate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const newTransaction = {
         ...transactionData,
-        id: Math.random().toString(36).substr(2, 9),
-        status: 'pending',
+        id: 'transaction_' + Math.random().toString(36).substr(2, 9),
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
       
       return newTransaction;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to add transaction');
     }
   }
 );
 
-export const updateTransaction = createAsyncThunk(
-  'wallet/updateTransaction',
-  async ({ transactionId, updates }, { rejectWithValue }) => {
+export const processTransaction = createAsyncThunk(
+  'wallet/processTransaction',
+  async ({ transactionId, status }, { rejectWithValue, getState }) => {
     try {
-      // Simulate API call
-      return {
-        id: transactionId,
-        ...updates,
+      const { transactions } = getState().wallet;
+      
+      if (!transactions[transactionId]) {
+        return rejectWithValue('Transaction not found');
+      }
+      
+      // In a real app, update in Firebase
+      // For now, just simulate
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const updatedTransaction = {
+        ...transactions[transactionId],
+        status,
         updatedAt: Date.now(),
       };
+      
+      return updatedTransaction;
     } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const updateWalletBalance = createAsyncThunk(
-  'wallet/updateWalletBalance',
-  async ({ userId, amount, isAdd = true }, { rejectWithValue }) => {
-    try {
-      // Simulate API call to update wallet balance
-      // amount is in cents
-      return { amount, isAdd };
-    } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to process transaction');
     }
   }
 );
@@ -135,10 +151,17 @@ export const updatePointToMoneyRatio = createAsyncThunk(
   'wallet/updatePointToMoneyRatio',
   async (ratio, { rejectWithValue }) => {
     try {
-      // Simulate API call to update point-to-money ratio
+      if (ratio <= 0) {
+        return rejectWithValue('Ratio must be greater than 0');
+      }
+      
+      // In a real app, save to parent's settings in Firebase
+      // For now, just simulate
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       return ratio;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to update ratio');
     }
   }
 );
@@ -148,137 +171,76 @@ const walletSlice = createSlice({
   name: 'wallet',
   initialState,
   reducers: {
-    resetWalletState: (state) => {
-      state.balance = 0;
-      state.transactions = {};
-      state.pointToMoneyRatio = 10; // Default 10 cents per point
-      state.loading = false;
+    resetWalletError: (state) => {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch wallet balance
-      .addCase(fetchWalletBalance.pending, (state) => {
+      // Fetch Wallet Data
+      .addCase(fetchWalletData.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchWalletBalance.fulfilled, (state, action) => {
-        state.balance = action.payload;
+      .addCase(fetchWalletData.fulfilled, (state, action) => {
         state.loading = false;
+        state.balance = action.payload.balance;
+        state.transactions = action.payload.transactions;
+        state.pointToMoneyRatio = action.payload.pointToMoneyRatio;
       })
-      .addCase(fetchWalletBalance.rejected, (state, action) => {
+      .addCase(fetchWalletData.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to fetch wallet data';
       })
-      
-      // Fetch transactions
-      .addCase(fetchTransactions.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchTransactions.fulfilled, (state, action) => {
-        state.transactions = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchTransactions.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Add transaction
+      // Add Transaction
       .addCase(addTransaction.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addTransaction.fulfilled, (state, action) => {
+        state.loading = false;
         state.transactions[action.payload.id] = action.payload;
         
-        // If the transaction is completed, update the balance
+        // Update balance if transaction is completed
         if (action.payload.status === 'completed') {
-          if (action.payload.type === 'deposit' || action.payload.type === 'reward') {
-            state.balance += action.payload.amount;
-          } else if (action.payload.type === 'withdrawal') {
-            state.balance -= action.payload.amount;
-          }
+          state.balance += action.payload.amount;
         }
-        
-        state.loading = false;
       })
       .addCase(addTransaction.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to add transaction';
       })
-      
-      // Update transaction
-      .addCase(updateTransaction.pending, (state) => {
+      // Process Transaction
+      .addCase(processTransaction.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateTransaction.fulfilled, (state, action) => {
-        const { id, ...updates } = action.payload;
+      .addCase(processTransaction.fulfilled, (state, action) => {
+        state.loading = false;
+        const oldTransaction = state.transactions[action.payload.id];
+        state.transactions[action.payload.id] = action.payload;
         
-        if (state.transactions[id]) {
-          const oldTransaction = state.transactions[id];
-          const newTransaction = { ...oldTransaction, ...updates };
-          state.transactions[id] = newTransaction;
-          
-          // If the status changed to 'completed', update the balance
-          if (oldTransaction.status !== 'completed' && newTransaction.status === 'completed') {
-            if (newTransaction.type === 'deposit' || newTransaction.type === 'reward') {
-              state.balance += newTransaction.amount;
-            } else if (newTransaction.type === 'withdrawal') {
-              state.balance -= newTransaction.amount;
-            }
-          }
-          
-          // If the status changed from 'completed', reverse the balance update
-          if (oldTransaction.status === 'completed' && newTransaction.status !== 'completed') {
-            if (oldTransaction.type === 'deposit' || oldTransaction.type === 'reward') {
-              state.balance -= oldTransaction.amount;
-            } else if (oldTransaction.type === 'withdrawal') {
-              state.balance += oldTransaction.amount;
-            }
-          }
+        // Update balance if transaction status changed
+        if (oldTransaction.status !== 'completed' && action.payload.status === 'completed') {
+          state.balance += action.payload.amount;
+        } else if (oldTransaction.status === 'completed' && action.payload.status !== 'completed') {
+          state.balance -= action.payload.amount;
         }
-        
+      })
+      .addCase(processTransaction.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload || 'Failed to process transaction';
       })
-      .addCase(updateTransaction.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Update wallet balance
-      .addCase(updateWalletBalance.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateWalletBalance.fulfilled, (state, action) => {
-        const { amount, isAdd } = action.payload;
-        state.balance = isAdd ? state.balance + amount : state.balance - amount;
-        state.loading = false;
-      })
-      .addCase(updateWalletBalance.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Update point-to-money ratio
-      .addCase(updatePointToMoneyRatio.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+      // Update Point to Money Ratio
       .addCase(updatePointToMoneyRatio.fulfilled, (state, action) => {
         state.pointToMoneyRatio = action.payload;
-        state.loading = false;
       })
       .addCase(updatePointToMoneyRatio.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to update ratio';
       });
   },
 });
 
-export const { resetWalletState } = walletSlice.actions;
+export const { resetWalletError } = walletSlice.actions;
+
 export default walletSlice.reducer;
