@@ -1,0 +1,154 @@
+# ChoreChamp Project Requirements Document (PRD)
+
+## 1. Project Overview
+
+ChoreChamp is a friendly mobile app designed to help busy parents assign, track, and reward daily chores for school-age children. It addresses the common issues of forgotten tasks, cluttered to-do lists, and low motivation by offering a colorful, gamified experience. Parents can create profiles for each child, set chore schedules and point values, and kids earn real-world rewards (including money) as they complete tasks.
+
+This app is being built to simplify family organization and boost kids’ responsibility through positive reinforcement. Success will be measured by:
+
+*   Smooth setup and onboarding (under 2 minutes to create an account and child profiles).
+*   High task completion rates (at least 75% of assigned chores marked done).
+*   Regular user engagement (families open the app at least once per day).
+*   Secure, reliable payment flow for parents and timely payouts for kids.
+
+## 2. In-Scope vs. Out-of-Scope
+
+### In-Scope (Version 1)
+
+*   Parent sign-up / login with email and optional social auth
+*   Child profiles under a single parent account (avatars, nicknames, age settings)
+*   Chore/task creation (one-off and recurring), due dates, point values
+*   Push notifications & reminders (snooze & “I’m done!” actions)
+*   Built-in calendar with two-way sync to Google/Apple Calendar
+*   Progress tracking (bars, streaks) and a customizable rewards store
+*   Points-to-money conversion with parent-funded wallet (pre-loaded funds)
+*   Stripe integration for managing wallet top-ups and kid payouts
+*   Quick shared notes & lists (shopping, projects)
+*   Offline mode with automatic data sync when reconnected
+*   Basic analytics (tasks completed, time in app, engagement trends)
+*   COPPA and GDPR compliance flows (parental consent, data access/deletion)
+
+### Out-of-Scope (Future Phases)
+
+*   Multi-language support beyond English
+*   Advanced social features (in-app messaging between families)
+*   Complex AI tutoring or educational content (beyond chore suggestions)
+*   Third-party integrations other than Google, Apple Calendars, and Stripe
+*   Web or desktop versions (mobile only at launch)
+
+## 3. User Flow
+
+When a parent first installs ChoreChamp, they see a welcoming screen prompting them to sign up via email or Google/Apple login. After entering basic details and agreeing to COPPA/GDPR notices, parents verify their account and land on the main dashboard. Here, they create profiles for each child by selecting avatars, entering nicknames, and choosing age ranges. The dashboard displays child cards—tapping a card switches to that child’s view.
+
+From the parent dashboard, chores are added through an intuitive form (task name, due date/recurrence, point value). Once saved, chores appear instantly in both the in-app calendar and the child’s task board. Children open their profiles to see a fun chore list; tapping a task shows details with “Complete” or “Snooze” options. Completing a chore triggers confetti animation and credits points. Parents preload funds into the digital wallet, and kids redeem points in the rewards store—funds are deducted automatically. Offline updates sync to Firebase when the device reconnects.
+
+## 4. Core Features
+
+*   **Authentication & Profiles**\
+    • Parent email/social login (OAuth).\
+    • Multiple child profiles under one parent account (avatars, age tags).
+*   **Chore & Task Management**\
+    • Create/edit one-off and recurring chores.\
+    • Set due dates, recurrence patterns, and point values.
+*   **Notifications & Reminders**\
+    • Push alerts via Firebase Cloud Messaging.\
+    • Snooze and confirm completion actions within notifications.
+*   **Calendar Integration**\
+    • In-app calendar view.\
+    • Two-way sync with Google and Apple Calendars (read/write chores and events).
+*   **Progress Tracking & Rewards**\
+    • Visual progress bars, streak counters.\
+    • Customizable rewards store (parents add prizes with images and point costs).
+*   **Monetary Wallet & Stripe Payouts**\
+    • Parent-funded wallet (pre-load funds at a set¢/point).\
+    • Instant redemption reduces wallet balance.\
+    • Stripe SDK manages top-ups and payouts to linked bank accounts.
+*   **Shared Notes & Lists**\
+    • Real-time collaborative lists (e.g., shopping, project ideas).
+*   **Offline Mode & Sync**\
+    • Local caching of chores, progress, wallet.\
+    • Automatic sync to Firebase Firestore when online.
+*   **Analytics Dashboard**\
+    • Track tasks completed, time spent, engagement per profile.
+*   **Optional AI Suggestions**\
+    • Age-based chore ideas, workload balance tips, motivational messages via OpenAI GPT API.
+
+## 5. Tech Stack & Tools
+
+*   **Frontend (iOS & Android):**\
+    • React Native (cross-platform framework) with TypeScript.\
+    • Expo (streamlined build & deployment).
+*   **Backend & Storage:**\
+    • Firebase Auth (user management).\
+    • Firestore (NoSQL real-time database).\
+    • Firebase Cloud Messaging (push notifications).\
+    • Firebase Storage (user-uploaded images, avatars).
+*   **Payments:**\
+    • Stripe Mobile SDK (wallet top-ups, payouts).
+*   **AI & Automation:**\
+    • OpenAI GPT models (API calls for chore suggestions & messages).\
+    • “gpt_o4-mini” for cost-efficient reasoning tasks.
+*   **Development Tools:**\
+    • Replit IDE for collaborative coding.\
+    • Git version control (GitHub or GitLab).
+
+## 6. Non-Functional Requirements
+
+*   **Performance:**\
+    • App launch < 2 seconds.\
+    • Screen transitions < 150 ms.
+*   **Scalability:**\
+    • Firestore rules to handle up to 100K families with minimal latency.
+*   **Security & Compliance:**\
+    • End-to-end encryption for sensitive data.\
+    • COPPA parental consent flows and child data protection.\
+    • GDPR data-access, portability, and deletion features.
+*   **Reliability & Availability:**\
+    • 99.5% uptime for authentication and database services.
+*   **Usability & Accessibility:**\
+    • High-contrast mode, adjustable fonts, voice-over labels.\
+    • Large touch targets (>44 px) and simple navigation.
+*   **Data Sync & Consistency:**\
+    • Offline edits queue and reconcile without user conflict errors.
+
+## 7. Constraints & Assumptions
+
+*   Parents and children share one parent-controlled account; children have limited permissions.
+*   Reliable availability of Firebase services and Stripe APIs.
+*   Internet connectivity may be intermittent; offline mode is critical.
+*   Initial launch in English only; internationalization planned later.
+*   AI suggestions rely on OpenAI GPT endpoint availability and network latency.
+
+## 8. Known Issues & Potential Pitfalls
+
+*   **API Rate Limits:**\
+    • OpenAI and Firebase quotas may throttle during peak usage—implement exponential back-off.
+*   **Calendar Sync Conflicts:**\
+    • Bi-directional updates can cause duplicate events—use unique IDs and timestamp checks.
+*   **Offline Merge Conflicts:**\
+    • Concurrent edits on chores or lists offline vs. online—resolve with “last write wins” or user prompts.
+*   **Payment Failures:**\
+    • Stripe transaction errors—show clear error messages and retry options.
+*   **Privacy Compliance:**\
+    • COPPA/GDPR documentation must be reviewed by legal; ensure parental consent logs.
+*   **Device Compatibility:**\
+    • Test on low-end Android devices to confirm performance and offline caching behave as expected.
+
+## 9. Monetization Strategy
+
+*   **Free Tier**\
+    • Up to 3 recurring chores per child\
+    • Basic push reminders\
+    • Limited points store catalog
+*   **Premium Tier ($4.99 / month)**\
+    • Unlimited chores & custom schedules\
+    • Monetary rewards wallet with real-money payouts\
+    • Family insights dashboard (weekly completion & streak reports)\
+    • Advanced calendar sync (multiple external calendars)\
+    • Custom avatars, themes & badges\
+    • Priority support & early beta access
+*   **Trial & Discounts**\
+    • 7-day free trial for new users\
+    • 20% off annual subscription
+
+With this PRD, the AI model has a clear roadmap to generate detailed technical documents—Tech Stack specifications, Frontend & Backend guidelines, security plans, and implementation steps—without ambiguity.
