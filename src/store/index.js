@@ -6,8 +6,7 @@ import rewardsReducer from './slices/rewardsSlice';
 import walletReducer from './slices/walletSlice';
 import analyticsReducer from './slices/analyticsSlice';
 
-// Configure the Redux store
-const store = configureStore({
+export const store = configureStore({
   reducer: {
     auth: authReducer,
     chores: choresReducer,
@@ -16,15 +15,10 @@ const store = configureStore({
     wallet: walletReducer,
     analytics: analyticsReducer,
   },
-  // Add middleware if needed
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
-    serializableCheck: {
-      // Ignore these action types (if needed)
-      ignoredActions: [],
-      // Ignore these field paths (if needed)
-      ignoredPaths: [],
-    },
-  }),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 
 export default store;

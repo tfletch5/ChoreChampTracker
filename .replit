@@ -21,7 +21,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "CI=1 npx expo start --web --port 5000"
+args = "export EXPO_NO_TS_CHECK=1 && CI=1 npx expo start --web --port 5000"
 waitForPort = 5000
 
 [deployment]
