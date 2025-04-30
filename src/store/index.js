@@ -3,6 +3,8 @@ import authReducer from './slices/authSlice';
 import choresReducer from './slices/choresSlice';
 import childrenReducer from './slices/childrenSlice';
 import rewardsReducer from './slices/rewardsSlice';
+import walletReducer from './slices/walletSlice';
+import analyticsReducer from './slices/analyticsSlice';
 
 // Configure the Redux store
 const store = configureStore({
@@ -11,6 +13,8 @@ const store = configureStore({
     chores: choresReducer,
     children: childrenReducer,
     rewards: rewardsReducer,
+    wallet: walletReducer,
+    analytics: analyticsReducer,
   },
   // Add middleware if needed
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({

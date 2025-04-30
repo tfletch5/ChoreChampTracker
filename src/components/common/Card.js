@@ -1,8 +1,17 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 
-const Card = ({ children, style, onPress, elevation = 2, borderRadius = 12, backgroundColor = 'white', padding = 15, margin = 0 }) => {
-  const cardStyles = {
+export const Card = ({ 
+  children, 
+  style, 
+  onPress, 
+  elevation = 2,
+  borderRadius = 12,
+  backgroundColor = '#FFFFFF',
+  padding = 16,
+  margin = 0
+}) => {
+  const cardStyle = {
     ...styles.card,
     elevation,
     borderRadius,
@@ -14,14 +23,18 @@ const Card = ({ children, style, onPress, elevation = 2, borderRadius = 12, back
 
   if (onPress) {
     return (
-      <TouchableOpacity style={cardStyles} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity 
+        style={cardStyle} 
+        onPress={onPress}
+        activeOpacity={0.8}
+      >
         {children}
       </TouchableOpacity>
     );
   }
 
   return (
-    <View style={cardStyles}>
+    <View style={cardStyle}>
       {children}
     </View>
   );
@@ -33,6 +46,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
   },
 });
 

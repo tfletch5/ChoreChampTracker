@@ -10,73 +10,104 @@ const initialState = {
 // Async thunks for API calls - to be implemented with backend
 export const fetchChores = createAsyncThunk(
   'chores/fetchChores',
-  async (parentId, { rejectWithValue }) => {
+  async ({ parentId, childId }, { rejectWithValue }) => {
     try {
       // For now, just return mock data
-      return {
+      // In a real app, this would fetch from Firestore or another backend
+      const now = Date.now();
+      const dayInMs = 24 * 60 * 60 * 1000;
+      
+      const mockChores = {
         '1': {
           id: '1',
           title: 'Clean bedroom',
-          description: 'Make bed, put away toys, vacuum floor',
-          pointValue: 10,
-          dueDate: Date.now() + 86400000, // tomorrow
-          isRecurring: false,
-          assignedTo: '1', // child ID
-          status: 'pending',
-          createdBy: 'parent1',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          reminders: [],
-        },
-        '2': {
-          id: '2',
-          title: 'Take out trash',
-          description: 'Take all trash bags to the curb',
-          pointValue: 5,
-          dueDate: Date.now(),
+          description: 'Make bed, put toys away, and vacuum floor',
+          pointValue: 20,
+          dueDate: now + (2 * dayInMs), // 2 days from now
           isRecurring: true,
           recurringPattern: {
             frequency: 'weekly',
             interval: 1,
-            daysOfWeek: [1, 4], // Monday and Thursday
+            daysOfWeek: [1, 5], // Monday and Friday
           },
-          assignedTo: '1',
-          completedAt: Date.now() - 3600000, // 1 hour ago
-          status: 'completed',
+          assignedTo: '1', // childId
+          status: 'pending',
           createdBy: 'parent1',
-          createdAt: Date.now() - 604800000, // 1 week ago
-          updatedAt: Date.now() - 3600000,
+          createdAt: now - (10 * dayInMs),
+          updatedAt: now - (10 * dayInMs),
+          reminders: [
+            {
+              id: '1-1',
+              time: now + dayInMs, // 1 day before due
+              sent: false,
+            },
+          ],
+        },
+        '2': {
+          id: '2',
+          title: 'Feed the dog',
+          description: 'Fill food and water bowls',
+          pointValue: 10,
+          dueDate: now + dayInMs, // 1 day from now
+          isRecurring: true,
+          recurringPattern: {
+            frequency: 'daily',
+            interval: 1,
+          },
+          assignedTo: '2', // childId
+          status: 'pending',
+          createdBy: 'parent1',
+          createdAt: now - (15 * dayInMs),
+          updatedAt: now - (15 * dayInMs),
           reminders: [],
         },
         '3': {
           id: '3',
-          title: 'Wash dishes',
-          description: 'Clean all dishes in the sink',
+          title: 'Take out trash',
+          description: 'Empty all trash cans and take to outdoor bin',
           pointValue: 15,
-          dueDate: Date.now() + 172800000, // 2 days from now
+          dueDate: now - dayInMs, // 1 day ago (overdue)
           isRecurring: false,
-          assignedTo: '2',
-          status: 'pending',
+          assignedTo: '1', // childId
+          status: 'overdue',
           createdBy: 'parent1',
-          createdAt: Date.now() - 86400000,
-          updatedAt: Date.now() - 86400000,
+          createdAt: now - (5 * dayInMs),
+          updatedAt: now - (5 * dayInMs),
           reminders: [],
         },
         '4': {
           id: '4',
-          title: 'Homework',
-          description: 'Complete math and science assignments',
-          pointValue: 20,
-          dueDate: Date.now() - 86400000, // yesterday
-          isRecurring: false,
-          assignedTo: '2',
-          status: 'overdue',
+          title: 'Set dinner table',
+          description: 'Place plates, utensils, and napkins',
+          pointValue: 5,
+          dueDate: now - (3 * dayInMs), // 3 days ago
+          isRecurring: true,
+          recurringPattern: {
+            frequency: 'daily',
+            interval: 1,
+          },
+          assignedTo: '2', // childId
+          completedAt: now - (3 * dayInMs) + (2 * 60 * 60 * 1000), // Completed 2 hours after due time
+          status: 'completed',
           createdBy: 'parent1',
-          createdAt: Date.now() - 172800000,
-          updatedAt: Date.now() - 172800000,
+          createdAt: now - (20 * dayInMs),
+          updatedAt: now - (3 * dayInMs) + (2 * 60 * 60 * 1000),
           reminders: [],
         },
       };
+      
+      // If a childId is provided, filter chores for that child
+      if (childId) {
+        const filteredChores = {};
+        Object.keys(mockChores).forEach(key => {
+          if (mockChores[key].assignedTo === childId) {
+            filteredChores[key] = mockChores[key];
+          }
+        });
+        return filteredChores;
+      }
+      
+      return mockChores;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -91,9 +122,9 @@ export const addChore = createAsyncThunk(
       const newChore = {
         ...choreData,
         id: Math.random().toString(36).substr(2, 9),
+        status: 'pending',
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        status: 'pending',
       };
       
       return newChore;
@@ -119,29 +150,40 @@ export const updateChore = createAsyncThunk(
   }
 );
 
-export const completeChore = createAsyncThunk(
-  'chores/completeChore',
-  async (choreId, { rejectWithValue }) => {
-    try {
-      // Simulate API call
-      return {
-        id: choreId,
-        status: 'completed',
-        completedAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
 export const deleteChore = createAsyncThunk(
   'chores/deleteChore',
   async (choreId, { rejectWithValue }) => {
     try {
       // Simulate API call
       return choreId;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const completeChore = createAsyncThunk(
+  'chores/completeChore',
+  async (choreId, { getState, rejectWithValue }) => {
+    try {
+      // Simulate API call
+      const state = getState();
+      const chore = state.chores.chores[choreId];
+      
+      if (!chore) {
+        return rejectWithValue('Chore not found');
+      }
+      
+      // Check if the chore is recurring
+      let newStatus = 'completed';
+      let completedAt = Date.now();
+      
+      return {
+        id: choreId,
+        status: newStatus,
+        completedAt,
+        updatedAt: Date.now(),
+      };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -206,6 +248,20 @@ const choresSlice = createSlice({
         state.error = action.payload;
       })
       
+      // Delete chore
+      .addCase(deleteChore.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteChore.fulfilled, (state, action) => {
+        delete state.chores[action.payload];
+        state.loading = false;
+      })
+      .addCase(deleteChore.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
       // Complete chore
       .addCase(completeChore.pending, (state) => {
         state.loading = true;
@@ -219,20 +275,6 @@ const choresSlice = createSlice({
         state.loading = false;
       })
       .addCase(completeChore.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Delete chore
-      .addCase(deleteChore.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteChore.fulfilled, (state, action) => {
-        delete state.chores[action.payload];
-        state.loading = false;
-      })
-      .addCase(deleteChore.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

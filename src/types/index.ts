@@ -1,4 +1,5 @@
-// User types
+// Type definitions for the ChoreChamp application
+
 export interface User {
   uid: string;
   email: string | null;
@@ -15,13 +16,13 @@ export interface ChildProfile {
   name: string;
   age: number;
   avatarURL: string;
+  avatar?: string; // Emoji avatar
   parentId: string;
   points: number;
   streakCount: number;
   createdAt: number;
 }
 
-// Chore types
 export interface Chore {
   id: string;
   title: string;
@@ -52,7 +53,6 @@ export interface Reminder {
   sent: boolean;
 }
 
-// Reward types
 export interface Reward {
   id: string;
   title: string;
@@ -78,7 +78,6 @@ export interface RewardRedemption {
   processedAt?: number; // timestamp
 }
 
-// Wallet types
 export interface Transaction {
   id: string;
   type: 'deposit' | 'withdrawal' | 'reward';
@@ -92,7 +91,6 @@ export interface Transaction {
   updatedAt: number; // timestamp
 }
 
-// Shared Lists types
 export interface SharedList {
   id: string;
   title: string;
@@ -112,7 +110,6 @@ export interface SharedListItem {
   updatedAt: number; // timestamp
 }
 
-// Analytics types
 export interface ChildAnalytics {
   childId: string;
   completedChores: number;
@@ -124,7 +121,6 @@ export interface ChildAnalytics {
   lastUpdated: number; // timestamp
 }
 
-// Notification types
 export interface AppNotification {
   id: string;
   title: string;
@@ -136,7 +132,6 @@ export interface AppNotification {
   createdAt: number; // timestamp
 }
 
-// Calendar types
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -152,7 +147,7 @@ export interface CalendarEvent {
   color?: string;
 }
 
-// App State types
+// Redux State Interfaces
 export interface AppState {
   auth: AuthState;
   chores: ChoresState;

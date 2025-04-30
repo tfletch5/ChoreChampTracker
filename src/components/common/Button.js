@@ -1,11 +1,11 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 
-const Button = ({
+export const Button = ({
   title,
   onPress,
-  type = 'primary',
-  size = 'medium',
+  type = 'primary', // primary, secondary, outline, text, danger
+  size = 'medium', // small, medium, large
   loading = false,
   disabled = false,
   icon,
@@ -16,64 +16,105 @@ const Button = ({
   const getButtonStyle = () => {
     const buttonStyles = [styles.button];
     
-    // Button type
-    if (type === 'primary') buttonStyles.push(styles.primaryButton);
-    else if (type === 'secondary') buttonStyles.push(styles.secondaryButton);
-    else if (type === 'outline') buttonStyles.push(styles.outlineButton);
-    else if (type === 'text') buttonStyles.push(styles.textButton);
-    else if (type === 'danger') buttonStyles.push(styles.dangerButton);
+    switch (type) {
+      case 'primary':
+        buttonStyles.push(styles.primaryButton);
+        break;
+      case 'secondary':
+        buttonStyles.push(styles.secondaryButton);
+        break;
+      case 'outline':
+        buttonStyles.push(styles.outlineButton);
+        break;
+      case 'text':
+        buttonStyles.push(styles.textButton);
+        break;
+      case 'danger':
+        buttonStyles.push(styles.dangerButton);
+        break;
+    }
     
-    // Button size
-    if (size === 'small') buttonStyles.push(styles.smallButton);
-    else if (size === 'large') buttonStyles.push(styles.largeButton);
+    switch (size) {
+      case 'small':
+        buttonStyles.push(styles.smallButton);
+        break;
+      case 'medium':
+        buttonStyles.push(styles.mediumButton);
+        break;
+      case 'large':
+        buttonStyles.push(styles.largeButton);
+        break;
+    }
     
-    // Full width
-    if (fullWidth) buttonStyles.push(styles.fullWidth);
+    if (disabled) {
+      buttonStyles.push(styles.disabledButton);
+    }
     
-    // Disabled state
-    if (disabled || loading) buttonStyles.push(styles.disabledButton);
+    if (fullWidth) {
+      buttonStyles.push(styles.fullWidthButton);
+    }
     
     return buttonStyles;
   };
   
   const getTextStyle = () => {
-    const buttonTextStyles = [styles.buttonText];
+    const textStyles = [styles.buttonText];
     
-    // Text color based on button type
-    if (type === 'primary') buttonTextStyles.push(styles.primaryButtonText);
-    else if (type === 'secondary') buttonTextStyles.push(styles.secondaryButtonText);
-    else if (type === 'outline') buttonTextStyles.push(styles.outlineButtonText);
-    else if (type === 'text') buttonTextStyles.push(styles.textButtonText);
-    else if (type === 'danger') buttonTextStyles.push(styles.dangerButtonText);
+    switch (type) {
+      case 'primary':
+        textStyles.push(styles.primaryButtonText);
+        break;
+      case 'secondary':
+        textStyles.push(styles.secondaryButtonText);
+        break;
+      case 'outline':
+        textStyles.push(styles.outlineButtonText);
+        break;
+      case 'text':
+        textStyles.push(styles.textButtonText);
+        break;
+      case 'danger':
+        textStyles.push(styles.dangerButtonText);
+        break;
+    }
     
-    // Text size
-    if (size === 'small') buttonTextStyles.push(styles.smallButtonText);
-    else if (size === 'large') buttonTextStyles.push(styles.largeButtonText);
+    switch (size) {
+      case 'small':
+        textStyles.push(styles.smallButtonText);
+        break;
+      case 'medium':
+        textStyles.push(styles.mediumButtonText);
+        break;
+      case 'large':
+        textStyles.push(styles.largeButtonText);
+        break;
+    }
     
-    // Disabled state
-    if (disabled || loading) buttonTextStyles.push(styles.disabledButtonText);
+    if (disabled) {
+      textStyles.push(styles.disabledButtonText);
+    }
     
-    return buttonTextStyles;
+    return textStyles;
   };
-
+  
   return (
     <TouchableOpacity
       style={[...getButtonStyle(), style]}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
-      <View style={styles.buttonContent}>
-        {icon && <View style={styles.iconContainer}>{icon}</View>}
-        {loading ? (
-          <ActivityIndicator
-            color={type === 'outline' || type === 'text' ? '#4285F4' : 'white'}
-            size={size === 'small' ? 'small' : 'small'}
-          />
-        ) : (
+      {loading ? (
+        <ActivityIndicator
+          color={type === 'outline' || type === 'text' ? '#4E67F0' : '#FFFFFF'}
+          size="small"
+        />
+      ) : (
+        <View style={styles.buttonContent}>
+          {icon && <View style={styles.iconContainer}>{icon}</View>}
           <Text style={[...getTextStyle(), textStyle]}>{title}</Text>
-        )}
-      </View>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -83,8 +124,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -95,20 +134,18 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   primaryButton: {
-    backgroundColor: '#4285F4',
+    backgroundColor: '#4E67F0',
   },
   secondaryButton: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#F86F6F',
   },
   outlineButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#4285F4',
+    borderColor: '#4E67F0',
   },
   textButton: {
     backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-    paddingVertical: 5,
   },
   dangerButton: {
     backgroundColor: '#F44336',
@@ -117,43 +154,50 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
+  mediumButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
   largeButton: {
     paddingVertical: 14,
-    paddingHorizontal: 24,
-  },
-  fullWidth: {
-    width: '100%',
+    paddingHorizontal: 20,
   },
   disabledButton: {
-    opacity: 0.5,
+    opacity: 0.6,
+  },
+  fullWidthButton: {
+    width: '100%',
   },
   buttonText: {
-    fontWeight: 'bold',
+    fontWeight: '600',
     textAlign: 'center',
   },
   primaryButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
   },
   secondaryButtonText: {
-    color: '#333',
+    color: '#FFFFFF',
   },
   outlineButtonText: {
-    color: '#4285F4',
+    color: '#4E67F0',
   },
   textButtonText: {
-    color: '#4285F4',
+    color: '#4E67F0',
   },
   dangerButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
   },
   smallButtonText: {
-    fontSize: 14,
+    fontSize: 13,
+  },
+  mediumButtonText: {
+    fontSize: 15,
   },
   largeButtonText: {
-    fontSize: 18,
+    fontSize: 17,
   },
   disabledButtonText: {
-    opacity: 1,
+    opacity: 0.8,
   },
 });
 

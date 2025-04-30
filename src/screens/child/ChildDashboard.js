@@ -1,113 +1,158 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Header from '../../components/common/Header';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
+import { useSelector, useDispatch } from 'react-redux';
+import { Header } from '../../components/common/Header';
+import { Card } from '../../components/common/Card';
+import { fetchChores } from '../../store/slices/choresSlice';
+import { fetchRewards } from '../../store/slices/rewardsSlice';
 
-const ChildDashboard = ({ navigation, child, chores, rewards, onBackPress, onCompleteChore, onRedeemReward }) => {
+const ChildDashboard = ({ route, navigation }) => {
+  const dispatch = useDispatch();
+  const { childId } = route.params || {};
+  
+  const { user } = useSelector((state) => state.auth);
+  const { children } = useSelector((state) => state.children);
+  const { chores } = useSelector((state) => state.chores);
+  
+  const child = children[childId];
+
+  useEffect(() => {
+    if (childId) {
+      dispatch(fetchChores({ childId }));
+    }
+    if (user && user.isParent) {
+      dispatch(fetchRewards(user.uid));
+    }
+  }, [dispatch, childId, user]);
+
+  const handleChorePress = (chore) => {
+    navigation.navigate('ChoreDetails', { chore });
+  };
+
+  const handleRewardShopPress = () => {
+    navigation.navigate('RewardShop', { childId });
+  };
+
+  const handleProgressPress = () => {
+    navigation.navigate('ChildProgress', { childId });
+  };
+
+  const getPendingChores = () => {
+    return Object.values(chores).filter(
+      (chore) => chore.assignedTo === childId && chore.status === 'pending'
+    );
+  };
+
+  const getOverdueChores = () => {
+    return Object.values(chores).filter(
+      (chore) => chore.assignedTo === childId && chore.status === 'overdue'
+    );
+  };
+
   if (!child) {
-    return null;
+    return (
+      <View style={styles.container}>
+        <Header 
+          title="Child Dashboard"
+          showBackButton={true}
+          onBackPress={() => navigation.goBack()}
+        />
+        <View style={styles.centerContainer}>
+          <Text>Child profile not found</Text>
+        </View>
+      </View>
+    );
   }
-  
-  const childChores = chores.filter(chore => chore.assignedTo === child.id);
-  
+
   return (
     <View style={styles.container}>
       <Header 
         title={`${child.name}'s Dashboard`}
-        showBackButton
-        onBackPress={onBackPress}
+        showBackButton={user && user.isParent}
+        onBackPress={() => navigation.goBack()}
       />
-
+      
       <ScrollView style={styles.scrollView}>
-        <Card style={styles.childProfileSummary}>
-          <Text style={styles.childAvatarLarge}>{child.avatar}</Text>
-          <View style={styles.childInfo}>
-            <Text style={styles.childNameLarge}>{child.name}</Text>
-            <View style={styles.pointsBadge}>
-              <Text style={styles.pointsText}>{child.points} points</Text>
-            </View>
+        <View style={styles.avatarSection}>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatar}>{child.avatar || '👧'}</Text>
           </View>
-        </Card>
-
-        <Text style={styles.sectionTitle}>My Chores</Text>
-        {childChores.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No chores assigned</Text>
-            <Text style={styles.emptyStateSubText}>Check back later for new tasks</Text>
+          <Text style={styles.childName}>{child.name}</Text>
+          <Text style={styles.childPoints}>{child.points} points</Text>
+          <Text style={styles.childStreak}>{child.streakCount} day streak 🔥</Text>
+        </View>
+        
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Chores</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
           </View>
-        ) : (
-          <View style={styles.choresList}>
-            {childChores.map(chore => (
-              <Card 
-                key={chore.id} 
-                style={[
-                  styles.choreItem, 
-                  chore.status === 'completed' ? styles.completedChore : 
-                  chore.status === 'overdue' ? styles.overdueChore : null
-                ]}
-              >
-                <View style={styles.choreDetails}>
-                  <Text style={styles.choreTitle}>{chore.title}</Text>
-                  <Text style={styles.choreInfo}>
-                    {chore.points} points • Due: {chore.dueDate}
-                  </Text>
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>
-                      {chore.status.charAt(0).toUpperCase() + chore.status.slice(1)}
-                    </Text>
+          
+          {getPendingChores().length === 0 ? (
+            <Card style={styles.emptyCard}>
+              <Text style={styles.emptyText}>No pending chores for today! 🎉</Text>
+            </Card>
+          ) : (
+            getPendingChores().slice(0, 3).map((chore) => (
+              <TouchableOpacity key={chore.id} onPress={() => handleChorePress(chore)}>
+                <Card style={styles.choreCard}>
+                  <View style={styles.choreInfo}>
+                    <Text style={styles.choreTitle}>{chore.title}</Text>
+                    <Text style={styles.chorePoints}>+{chore.pointValue} points</Text>
                   </View>
-                </View>
-                {chore.status === 'pending' && (
-                  <TouchableOpacity 
-                    style={styles.completeButton}
-                    onPress={() => onCompleteChore(chore)}
-                  >
-                    <Text style={styles.completeText}>Complete</Text>
-                  </TouchableOpacity>
-                )}
-              </Card>
+                  <View style={styles.choreStatus}>
+                    <View style={styles.statusBadge}>
+                      <Text style={styles.statusText}>To Do</Text>
+                    </View>
+                  </View>
+                </Card>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+        
+        {getOverdueChores().length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Overdue Chores</Text>
+            </View>
+            
+            {getOverdueChores().slice(0, 2).map((chore) => (
+              <TouchableOpacity key={chore.id} onPress={() => handleChorePress(chore)}>
+                <Card style={styles.choreCard}>
+                  <View style={styles.choreInfo}>
+                    <Text style={styles.choreTitle}>{chore.title}</Text>
+                    <Text style={styles.chorePoints}>+{chore.pointValue} points</Text>
+                  </View>
+                  <View style={styles.choreStatus}>
+                    <View style={[styles.statusBadge, styles.overdueBadge]}>
+                      <Text style={styles.overdueText}>Overdue</Text>
+                    </View>
+                  </View>
+                </Card>
+              </TouchableOpacity>
             ))}
           </View>
         )}
-
-        <Text style={styles.sectionTitle}>Rewards Shop</Text>
-        {rewards.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No rewards available</Text>
-            <Text style={styles.emptyStateSubText}>Complete chores to earn points for rewards</Text>
-          </View>
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rewardsScroll}>
-            {rewards.map(reward => (
-              <Card 
-                key={reward.id} 
-                style={styles.rewardCard}
-                onPress={() => onRedeemReward(reward)}
-              >
-                <Text style={styles.rewardTitle}>{reward.title}</Text>
-                <Text style={styles.rewardCost}>{reward.points} points</Text>
-                {reward.cashValue && (
-                  <Text style={styles.cashValue}>${(reward.cashValue / 100).toFixed(2)}</Text>
-                )}
-              </Card>
-            ))}
-          </ScrollView>
-        )}
-
-        <View style={styles.buttonGroup}>
-          <Button 
-            title="My Profile" 
-            type="primary"
-            style={styles.profileButton}
-            onPress={() => navigation.navigate('ChildProfile')}
-          />
-          <Button 
-            title="My Progress" 
-            type="primary"
-            style={styles.progressButton}
-            onPress={() => navigation.navigate('ChildProgress')}
-          />
+        
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={handleRewardShopPress}
+          >
+            <Text style={styles.actionButtonIcon}>🎁</Text>
+            <Text style={styles.actionButtonText}>Reward Shop</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={handleProgressPress}
+          >
+            <Text style={styles.actionButtonIcon}>📈</Text>
+            <Text style={styles.actionButtonText}>My Progress</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -117,157 +162,143 @@ const ChildDashboard = ({ navigation, child, chores, rewards, onBackPress, onCom
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F7FA',
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
     padding: 16,
   },
-  childProfileSummary: {
-    flexDirection: 'row',
+  avatarSection: {
     alignItems: 'center',
-    padding: 15,
-    marginBottom: 15,
+    marginBottom: 24,
   },
-  childAvatarLarge: {
-    fontSize: 40,
-    marginRight: 15,
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#4E67F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
-  childInfo: {
-    flex: 1,
+  avatar: {
+    fontSize: 50,
   },
-  childNameLarge: {
-    fontSize: 18,
+  childName: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 4,
+    color: '#333',
   },
-  pointsBadge: {
-    backgroundColor: '#e3f2fd',
-    borderRadius: 15,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    alignSelf: 'flex-start',
-  },
-  pointsText: {
-    color: '#4285F4',
+  childPoints: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#4E67F0',
+    marginBottom: 4,
+  },
+  childStreak: {
+    fontSize: 16,
+    color: '#F86F6F',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 10,
     color: '#333',
   },
-  choresList: {
-    marginBottom: 15,
+  seeAllText: {
+    fontSize: 14,
+    color: '#4E67F0',
   },
-  choreItem: {
-    padding: 15,
-    marginBottom: 10,
+  emptyCard: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: '#666',
+    fontSize: 16,
+  },
+  choreCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  completedChore: {
-    backgroundColor: '#f0fff0',
-    borderLeftWidth: 4,
-    borderLeftColor: '#66BB6A',
-  },
-  overdueChore: {
-    backgroundColor: '#fff0f0',
-    borderLeftWidth: 4,
-    borderLeftColor: '#F44336',
-  },
-  choreDetails: {
+  choreInfo: {
     flex: 1,
   },
   choreTitle: {
-    fontWeight: 'bold',
     fontSize: 16,
-    marginBottom: 5,
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#333',
   },
-  choreInfo: {
+  chorePoints: {
     fontSize: 14,
-    color: '#888',
-    marginBottom: 5,
+    color: '#4E67F0',
   },
+  choreStatus: {},
   statusBadge: {
-    backgroundColor: '#f2f2f2',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    alignSelf: 'flex-start',
+    backgroundColor: '#E1E9FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   statusText: {
+    color: '#4E67F0',
     fontSize: 12,
-    color: '#555',
-  },
-  completeButton: {
-    backgroundColor: '#4285F4',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginLeft: 10,
-  },
-  completeText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  rewardsScroll: {
-    marginBottom: 20,
-  },
-  rewardCard: {
-    padding: 15,
-    marginRight: 12,
-    width: 140,
-  },
-  rewardTitle: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  rewardCost: {
-    color: '#4285F4',
     fontWeight: '600',
   },
-  cashValue: {
-    color: '#66BB6A',
-    fontWeight: '600',
-    marginTop: 5,
+  overdueBadge: {
+    backgroundColor: '#FFECEC',
   },
-  emptyState: {
+  overdueText: {
+    color: '#F44336',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 24,
+  },
+  actionButton: {
+    backgroundColor: '#FFFFFF',
+    width: 150,
+    height: 120,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  emptyStateText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+  actionButtonIcon: {
+    fontSize: 40,
     marginBottom: 8,
   },
-  emptyStateSubText: {
-    fontSize: 14,
-    color: '#888',
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  profileButton: {
-    flex: 1,
-    marginRight: 6,
-    backgroundColor: '#4285F4',
-  },
-  progressButton: {
-    flex: 1,
-    marginLeft: 6,
-    backgroundColor: '#9C27B0',
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
   },
 });
 

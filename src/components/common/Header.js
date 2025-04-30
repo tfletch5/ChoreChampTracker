@@ -3,16 +3,22 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 export const Header = ({ title, showBackButton = false, onBackPress, rightComponent }) => {
   return (
-    <View style={styles.container}>
-      <View style={styles.leftSection}>
+    <View style={styles.header}>
+      <View style={styles.leftContainer}>
         {showBackButton && (
-          <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-            <Text style={styles.backButtonText}>←</Text>
+          <TouchableOpacity 
+            onPress={onBackPress} 
+            style={styles.backButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
         )}
-        <Text style={styles.title}>{title}</Text>
       </View>
-      <View style={styles.rightSection}>
+      
+      <Text style={styles.title}>{title}</Text>
+      
+      <View style={styles.rightContainer}>
         {rightComponent}
       </View>
     </View>
@@ -20,34 +26,38 @@ export const Header = ({ title, showBackButton = false, onBackPress, rightCompon
 };
 
 const styles = StyleSheet.create({
-  container: {
+  header: {
     height: 60,
-    paddingHorizontal: 15,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#4285F4',
-    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  leftContainer: {
+    width: 80,
+    alignItems: 'flex-start',
   },
-  rightSection: {
+  rightContainer: {
+    width: 80,
     alignItems: 'flex-end',
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#333',
   },
   backButton: {
-    marginRight: 10,
+    padding: 4,
   },
   backButtonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
+    color: '#4E67F0',
+    fontSize: 16,
   },
 });
 
